@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JARVIS - Voice Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0d1117 0%, #1a1f2e 100%);
+            color: #f0f6fc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: rgba(33, 38, 45, 0.9);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            border: 1px solid #30363d;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .title {
+            font-size: 3em;
+            font-weight: bold;
+            color: #00e5ff;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
+            font-family: 'Courier New', monospace;
+            letter-spacing: 3px;
+        }
+
+        .arc-reactor {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 30px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #00e5ff 0%, #0091ea 100%);
+            border: 3px solid #40e0d0;
+            position: relative;
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.6);
+        }
+
+        .arc-reactor::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(0, 229, 255, 0.6); }
+            50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(0, 229, 255, 0.8); }
+        }
+
+        .status {
+            background: rgba(22, 27, 34, 0.8);
+            border: 1px solid #0091ea;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
+        }
+
+        .command-display {
+            background: rgba(33, 38, 45, 0.8);
+            border: 1px solid #6e7681;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 30px;
+            min-height: 50px;
+            color: #8b949e;
+            font-style: italic;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-listen {
+            background: linear-gradient(45deg, #238636, #2ea043);
+            color: white;
+            box-shadow: 0 5px 15px rgba(35, 134, 54, 0.4);
+        }
+
+        .btn-listen:hover {
+            box-shadow: 0 8px 25px rgba(35, 134, 54, 0.6);
+        }
+
+        .btn-stop {
+            background: linear-gradient(45deg, #da3633, #f85149);
+            color: white;
+            box-shadow: 0 5px 15px rgba(218, 54, 51, 0.4);
+        }
+
+        .btn-stop:hover {
+            box-shadow: 0 8px 25px rgba(218, 54, 51, 0.6);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .help {
+            background: transparent;
+            border: 1px dashed #6e7681;
+            border-radius: 8px;
+            padding: 20px;
+            color: #6e7681;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .listening {
+            animation: pulse 1s infinite;
+        }
+
+        .error {
+            color: #f85149;
+            background: rgba(248, 81, 73, 0.1);
+            border-color: #f85149;
+        }
+
+        .success {
+            color: #2ea043;
+            background: rgba(46, 160, 67, 0.1);
+            border-color: #2ea043;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .title {
+                font-size: 2.5em;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .arc-reactor {
+                width: 100px;
+                height: 100px;
+            }
+        }
+
+        .wave {
+            display: inline-block;
+            animation: wave 1s infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(1.5); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">J.A.R.V.I.S</h1>
+        
+        <div class="arc-reactor" id="arcReactor"></div>
+        
+        <div class="status" id="statusDisplay">
+            JARVIS is offline. Click ACTIVATE to begin.
+        </div>
+        
+        <div class="command-display" id="commandDisplay">
+            Ready to receive voice commands...
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-listen" id="activateBtn" onclick="toggleJarvis()">
+                ACTIVATE
+            </button>
+            <button class="btn btn-stop" id="stopBtn" onclick="stopJarvis()" disabled>
+                DEACTIVATE
+            </button>
+        </div>
+        
+        <div class="help">
+            <strong>Voice Commands:</strong><br>
+            • Say "Jarvis" to wake up<br>
+            • Ask for time: "What time is it?"<br>
+            • Ask for date: "What's the date?"<br>
+            • Request a joke: "Tell me a joke"<br>
+            • Say "goodbye" or "exit" to stop
+        </div>
+    </div>
+
+    <script>
+        class JARVIS {
+            constructor() {
+                this.recognition = null;
+                this.synthesis = null;
+                this.isActive = false;
+                this.isAwake = false;
+                this.wakeWord = 'jarvis';
+                this.jokes = [
+                    "Why don't scientists trust atoms? Because they make up everything!",
+                    "Why did the scarecrow win an award? He was outstanding in his field!",
+                    "Why don't eggs tell jokes? They'd crack each other up!",
+                    "What do you call a fake noodle? An impasta!",
+                    "Why did the math book look so sad? Because it had too many problems!",
+                    "What do you call a bear with no teeth? A gummy bear!"
+                ];
+                
+                this.initializeSpeech();
+                this.updateUI();
+            }
+            
+            initializeSpeech() {
+                // Check for Web Speech API support
+                if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                    this.showError('Speech recognition not supported in this browser. Please use Chrome, Edge, or Safari.');
+                    return;
+                }
+                
+                // Initialize Speech Recognition
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                this.recognition = new SpeechRecognition();
+                this.recognition.continuous = true;
+                this.recognition.interimResults = true;
+                this.recognition.lang = 'en-US';
+                
+                this.recognition.onstart = () => {
+                    this.updateStatus('Listening...', 'listening');
+                };
+                
+                this.recognition.onresult = (event) => {
+                    let finalTranscript = '';
+                    let interimTranscript = '';
+                    
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            finalTranscript += transcript;
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+                    
+                    if (finalTranscript) {
+                        this.processVoiceInput(finalTranscript.toLowerCase().trim());
+                    } else if (interimTranscript) {
+                        this.updateCommand(`Listening: "${interimTranscript}"`);
+                    }
+                };
+                
+                this.recognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
+                    if (event.error === 'not-allowed') {
+                        this.showError('Microphone access denied. Please allow microphone access and reload the page.');
+                    } else {
+                        this.restartListening();
+                    }
+                };
+                
+                this.recognition.onend = () => {
+                    if (this.isActive) {
+                        setTimeout(() => this.startListening(), 1000);
+                    }
+                };
+                
+                // Initialize Speech Synthesis
+                this.synthesis = window.speechSynthesis;
+            }
+            
+            speak(text) {
+                return new Promise((resolve) => {
+                    if (!this.synthesis) {
+                        resolve();
+                        return;
+                    }
+                    
+                    // Cancel any ongoing speech
+                    this.synthesis.cancel();
+                    
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.rate = 0.9;
+                    utterance.pitch = 1;
+                    utterance.volume = 1;
+                    
+                    // Try to use a male voice
+                    const voices = this.synthesis.getVoices();
+                    const preferredVoice = voices.find(voice => 
+                        voice.name.includes('Male') || 
+                        voice.name.includes('David') || 
+                        voice.name.includes('Daniel')
+                    );
+                    if (preferredVoice) {
+                        utterance.voice = preferredVoice;
+                    }
+                    
+                    utterance.onend = resolve;
+                    utterance.onerror = resolve;
+                    
+                    this.updateStatus(`JARVIS: ${text}`, 'success');
+                    this.synthesis.speak(utterance);
+                });
+            }
+            
+            async processVoiceInput(input) {
+                this.updateCommand(`You said: "${input}"`);
+                
+                if (!this.isAwake) {
+                    if (input.includes(this.wakeWord)) {
+                        this.isAwake = true;
+                        await this.speak("Yes, how can I help you?");
+                        this.updateStatus('JARVIS is awake. Listening for commands...', 'success');
+                    }
+                    return;
+                }
+                
+                // Process commands when awake
+                if (input.includes('exit') || input.includes('bye') || input.includes('goodbye')) {
+                    await this.speak("Goodbye! Going offline.");
+                    this.stopJarvis();
+                    return;
+                }
+                
+                if (input.includes('time')) {
+                    const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    await this.speak(`The time is ${time}`);
+                } else if (input.includes('date')) {
+                    const date = new Date().toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    await this.speak(`Today is ${date}`);
+                } else if (input.includes('joke')) {
+                    const joke = this.jokes[Math.floor(Math.random() * this.jokes.length)];
+                    await this.speak(joke);
+                } else if (input.includes('hello') || input.includes('hi')) {
+                    await this.speak("Hello! How can I assist you today?");
+                } else if (input.includes('weather')) {
+                    await this.speak("I would need internet access and weather API integration to provide weather information.");
+                } else if (input.includes('sleep') || input.includes('go to sleep')) {
+                    this.isAwake = false;
+                    await this.speak("Going to sleep. Say Jarvis to wake me up.");
+                    this.updateStatus('JARVIS is sleeping. Say "Jarvis" to wake up.', 'listening');
+                } else {
+                    await this.speak(`I heard you say: ${input}. I'm still learning new commands.`);
+                }
+                
+                if (this.isAwake) {
+                    this.updateStatus('JARVIS is awake. Listening for commands...', 'success');
+                }
+            }
+            
+            startListening() {
+                if (this.recognition && this.isActive) {
+                    try {
+                        this.recognition.start();
+                    } catch (error) {
+                        console.log('Recognition already started');
+                    }
+                }
+            }
+            
+            restartListening() {
+                if (this.isActive) {
+                    setTimeout(() => {
+                        this.startListening();
+                    }, 1000);
+                }
+            }
+            
+            async activate() {
+                if (!this.recognition) {
+                    this.showError('Speech recognition not available');
+                    return;
+                }
+                
+                this.isActive = true;
+                this.isAwake = false;
+                await this.speak("JARVIS is now online. Say my name to wake me up.");
+                this.updateStatus('Listening for wake word "Jarvis"...', 'listening');
+                this.startListening();
+                this.updateUI();
+            }
+            
+            stopJarvis() {
+                this.isActive = false;
+                this.isAwake = false;
+                
+                if (this.recognition) {
+                    this.recognition.stop();
+                }
+                
+                if (this.synthesis) {
+                    this.synthesis.cancel();
+                }
+                
+                this.updateStatus('JARVIS is offline. Click ACTIVATE to begin.');
+                this.updateCommand('Ready to receive voice commands...');
+                this.updateUI();
+            }
+            
+            updateStatus(message, type = '') {
+                const statusEl = document.getElementById('statusDisplay');
+                statusEl.textContent = message;
+                statusEl.className = `status ${type}`;
+            }
+            
+            updateCommand(message) {
+                document.getElementById('commandDisplay').textContent = message;
+            }
+            
+            showError(message) {
+                this.updateStatus(message, 'error');
+            }
+            
+            updateUI() {
+                const activateBtn = document.getElementById('activateBtn');
+                const stopBtn = document.getElementById('stopBtn');
+                const arcReactor = document.getElementById('arcReactor');
+                
+                if (this.isActive) {
+                    activateBtn.disabled = true;
+                    activateBtn.textContent = 'ACTIVE';
+                    stopBtn.disabled = false;
+                    arcReactor.classList.add('listening');
+                } else {
+                    activateBtn.disabled = false;
+                    activateBtn.textContent = 'ACTIVATE';
+                    stopBtn.disabled = true;
+                    arcReactor.classList.remove('listening');
+                }
+            }
+        }
+        
+        // Initialize JARVIS
+        let jarvis;
+        
+        // Wait for voices to load
+        window.speechSynthesis.onvoiceschanged = function() {
+            if (!jarvis) {
+                jarvis = new JARVIS();
+            }
+        };
+        
+        // Initialize immediately if voices are already loaded
+        if (window.speechSynthesis.getVoices().length > 0) {
+            jarvis = new JARVIS();
+        }
+        
+        // Fallback initialization
+        setTimeout(() => {
+            if (!jarvis) {
+                jarvis = new JARVIS();
+            }
+        }, 1000);
+        
+        function toggleJarvis() {
+            if (jarvis && !jarvis.isActive) {
+                jarvis.activate();
+            }
+        }
+        
+        function stopJarvis() {
+            if (jarvis) {
+                jarvis.stopJarvis();
+            }
+        }
+        
+        // Handle page visibility change
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden && jarvis && jarvis.isActive) {
+                jarvis.stopJarvis();
+            }
+        });
+    </script>
+</body>
+</html>
