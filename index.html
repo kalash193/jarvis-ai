@@ -384,7 +384,7 @@
 
     // Send all other commands to the ChatGPT backend
     try {
-        const response = await fetch('http://localhost:3000/chat', {
+        const response = await fetch('http://192.168.56.1:3000/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message: input })
@@ -533,4 +533,5 @@
         });
     </script>
 </body>
+
 </html>
