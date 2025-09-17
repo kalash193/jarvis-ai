@@ -1,0 +1,129 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>JARVIS AI Assistant</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+
+  
+</head>
+<body>
+    <h1>JARVIS AI</h1>
+    <div class="arc-reactor"></div>
+    <div id="status" class="glow">Jarvis is offline. Click ACTIVATE.</div>
+    <div id="commandDisplay">Ready to receive your commands...</div>
+    <div>
+        <button class="btn-listen" onclick="startListening()">ACTIVATE</button>
+        <button class="btn-stop" onclick="stopListening()" disabled>DEACTIVATE</button>
+    </div>
+
+    <script>
+        let recognition;
+        let isListening = false;
+
+        function initializeSpeech() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert("Speech Recognition not supported. Use Chrome.");
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                updateStatus("Listening...");
+            };
+
+            recognition.onresult = async (event) => {
+                const transcript = event.results[0][0].transcript.toLowerCase();
+                document.getElementById('commandDisplay').textContent = `You said: "${transcript}"`;
+                await handleCommand(transcript);
+            };
+
+            recognition.onerror = (event) => {
+                updateStatus(`Error: ${event.error}`);
+            };
+
+            recognition.onend = () => {
+                if (isListening) {
+                    recognition.start();
+                }
+            };
+        }
+
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            window.speechSynthesis.speak(utterance);
+            updateStatus(`Jarvis: ${text}`);
+        }
+
+        async function askChatGPT(message) {
+            const apiKey = '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'; // ⚠ Insert your OpenAI key here
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-3.5-turbo',
+                        messages: [{ role: 'user', content: message }],
+                        max_tokens: 150
+                    })
+                });
+                const data = await response.json();
+                return data.choices[0].message.content;
+            } catch (error) {
+                console.error(error);
+                return "Sorry, I can't reach OpenAI.";
+            }
+        }
+
+        async function handleCommand(command) {
+            if (command.includes('time')) {
+                const time = new Date().toLocaleTimeString();
+                speak(`The time is ${time}`);
+            } else if (command.includes('date')) {
+                const date = new Date().toLocaleDateString();
+                speak(`Today's date is ${date}`);
+            } else if (command.includes('joke')) {
+                speak("Why don't skeletons fight each other? They don't have the guts!");
+            } else if (command.includes('bye') || command.includes('goodbye') || command.includes('exit')) {
+                speak("Goodbye!");
+                stopListening();
+            } else {
+                const reply = await askChatGPT(command);
+                speak(reply);
+            }
+        }
+
+        function startListening() {
+            if (!recognition) initializeSpeech();
+            isListening = true;
+            recognition.start();
+            document.querySelector('.btn-listen').disabled = true;
+            document.querySelector('.btn-stop').disabled = false;
+            updateStatus("Listening...");
+        }
+
+        function stopListening() {
+            isListening = false;
+            recognition.stop();
+            document.querySelector('.btn-listen').disabled = false;
+            document.querySelector('.btn-stop').disabled = true;
+            updateStatus("Jarvis is offline.");
+        }
+
+        function updateStatus(text) {
+            document.getElementById('status').textContent = text;
+        }
+    </script>
+</body>
+</html>
