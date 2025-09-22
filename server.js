@@ -1,28 +1,34 @@
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
+import express from "express";
+import cors from "cors";
+import fetch from "node-fetch";
 
 const app = express();
-const PORT = 3000;
-
-// Enable CORS so your phone can access the server
 app.use(cors());
+app.use(express.json());
 
-// Parse JSON bodies
-app.use(bodyParser.json());
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY; // store safely in .env
 
-// Define the homepage route
-app.get('/', (req, res) => {
-    res.send('JARVIS server is running!');
+app.post("/ask", async (req, res) => {
+  try {
+    const { question } = req.body;
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: question }]
+      })
+    });
+
+    const data = await response.json();
+    res.json({ answer: data.choices[0].message.content });
+  } catch (error) {
+    res.status(500).json({ error: "Something went wrong" });
+  }
 });
 
-// Example chat endpoint
-app.post('/chat', (req, res) => {
-    const message = req.body.message;
-    res.json({ reply: `You said: ${message}` });
-});
-
-// Start the server
-aapp.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on http://192.168.31.81:${PORT}`);
-});
+app.listen(5000, () => console.log("🚀 Jarvis backend running on port 5000"));
