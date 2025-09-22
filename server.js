@@ -17,17 +17,17 @@ app.post("/ask", async (req, res) => {
   try {
     const { question } = req.body;
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [{ role: "user", content: question }]
-      })
-    });
+   const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  method: "POST",
+  headers: {
+    "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    model: "gpt-3.5-turbo",
+    messages: [{ role: "user", content: message }]
+  })
+});
 
     const data = await response.json();
     res.json({ answer: data.choices[0].message.content });
@@ -37,3 +37,4 @@ app.post("/ask", async (req, res) => {
 });
 
 app.listen(5000, () => console.log("🚀 Jarvis backend running on port 5000"));
+
