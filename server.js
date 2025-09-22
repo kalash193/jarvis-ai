@@ -29,7 +29,8 @@ app.post("/ask", async (req, res) => {
   })
 });
 
-    const data = await response.json();
+    console.log("🔗 Fetching from OpenAI with key:", process.env.OPENAI_API_KEY ? "SET" : "MISSING");
+const data = await response.json();
     res.json({ answer: data.choices[0].message.content });
   } catch (error) {
     res.status(500).json({ error: "Something went wrong" });
@@ -37,4 +38,5 @@ app.post("/ask", async (req, res) => {
 });
 
 app.listen(5000, () => console.log("🚀 Jarvis backend running on port 5000"));
+
 
