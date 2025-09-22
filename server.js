@@ -1,15 +1,17 @@
 import express from "express";
 import cors from "cors";
 import fetch from "node-fetch";
-import dotenv from 'dotenv'; // Import the dotenv library
-
-dotenv.config(); // Load environment variables from .env file
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY; // store safely in .env
+
+// Add this new GET route to handle requests to the root URL
+app.get("/", (req, res) => {
+  res.send("🚀 Jarvis backend is up and running!");
+});
 
 app.post("/ask", async (req, res) => {
   try {
