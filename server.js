@@ -1,6 +1,9 @@
 import express from "express";
 import cors from "cors";
+import fetch from "node-fetch";
+import dotenv from 'dotenv'; // Import the dotenv library
 
+dotenv.config(); // Load environment variables from .env file
 
 const app = express();
 app.use(cors());
@@ -32,4 +35,3 @@ app.post("/ask", async (req, res) => {
 });
 
 app.listen(5000, () => console.log("🚀 Jarvis backend running on port 5000"));
-
